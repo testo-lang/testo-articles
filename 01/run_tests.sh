@@ -1,12 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 
-SSH_CMD="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
+SSH_CMD="sshpass -p 1111 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
 EXEC_CLIENT="$SSH_CMD root@192.168.100.2"
 EXEC_MIDDLEBOX="$SSH_CMD root@192.168.100.3"
 EXEC_SERVER="$SSH_CMD root@192.168.100.4"
 
-SCP_CMD="scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
+SCP_CMD="sshpass -p 1111 scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
 
 # =======================================
 # Подготовка сети net_for_ssh
@@ -45,8 +45,9 @@ then
 		--output client.qcow2 \
 		--hostname client \
 		--install wget,net-tools \
-		--ssh-inject root \
+		--root-password password:1111 \
 		--run-command "ssh-keygen -A" \
+		--run-command "sed -i \"s/.*PermitRootLogin.*/PermitRootLogin yes/g\" /etc/ssh/sshd_config" \
 		--copy-in netcfg_client.yaml:/etc/netplan/
 
 	virt-install \
@@ -73,8 +74,9 @@ then
 		--output middlebox.qcow2 \
 		--hostname middlebox \
 		--install python,daemon,libnuma1 \
-		--ssh-inject root \
+		--root-password password:1111 \
 		--run-command "ssh-keygen -A" \
+		--run-command "sed -i \"s/.*PermitRootLogin.*/PermitRootLogin yes/g\" /etc/ssh/sshd_config" \
 		--copy-in netcfg_middlebox.yaml:/etc/netplan/
 
 	virt-install \
@@ -104,8 +106,9 @@ then
 		--output server.qcow2 \
 		--hostname server \
 		--install nginx,net-tools \
-		--ssh-inject root \
+		--root-password password:1111 \
 		--run-command "ssh-keygen -A" \
+		--run-command "sed -i \"s/.*PermitRootLogin.*/PermitRootLogin yes/g\" /etc/ssh/sshd_config" \
 		--copy-in netcfg_server.yaml:/etc/netplan/
 
 	virt-install \
